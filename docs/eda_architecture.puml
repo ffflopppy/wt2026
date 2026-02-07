@@ -1,0 +1,83 @@
+@startuml
+title Event-Driven Architecture :: 2026\n경험은 쌓이고, 사건은 흐르고, 나는 그 안에서 다시 선택한다
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master
+
+skinparam componentStyle rectangle
+
+' Source Layer
+database "Experience Store\n\nmemories\nhabits\nlessons" as SourceDB
+
+component "Event Producer\n\nvalidate\ntransform\npublish" as Producer
+
+' Event Bus
+queue "Event Stream / Message Bus\n\nKafka\nat-least-once\nreplay enabled" as EventBus
+
+' Consumer Layer
+package "Real-time Consumers" {
+    component "Gateway\n\npause\nchoose" as Gateway
+    component "Filter\n\ninterpret\ndecide" as Filter
+    component "Firewall\n(에너지방화벽)\nlimit\nprotect" as Firewall
+    component "Retry Handler\n\n1m→5m→30m" as Retry
+    database "DLQ\n(Dead Letter Queue)\nunhandled\n부자되기\n먹을때 윤진이 생각\n효도?효년?\n배추심기부터김장\n아!! 맞다!" as DLQ
+}
+
+' Storage Layer
+database "Event Store\n(append olny)\n취업\nraw events\nsource of truth\nreplay enabled" as EventStore
+
+database "Read Model\n(Views)\n\nRedis\nElasticsearch\ndashboard\nsearch index\nfast queries" as ReadModel
+
+component "Event Projector\n\nupdate views\ninvalidate\nreindex" as Projector
+
+' Batch Processing
+package "Batch Processing (Scheduled)" {
+    component "Scheduler\n\n@daily\n@weekly\n@monthly" as Scheduler
+    component "Batch Processor\n\nsort\n곗돈\nreset" as BatchProc
+    component "Monitor\n\nobserve\nnotice\nadjust" as Monitor
+    component "Output\n\nresults\ninsights\nnext step" as Output
+}
+
+' Observability
+package "Observability Stack" {
+    database "Metrics(측정지표)\n\nburnout_risk\nsocial_energy\nproductivity_score\ngratitude_count\nconflict_frequency" as Metrics
+    database "Logs(기록)\n\nconversations\nachievements\nmistakes\nlearnings\nmoments_of_joy" as Logs
+    database "Traces(추적)\n\nstress_cascade\nrecovery_path\ngrowth_journey\nrelationship_dynamics" as Traces
+    component "Alert Manager\n\nburnout_warning\nrelationship_red_flag\nhealth_decline\nvalues_misalignment" as Alerts
+    component "Policy Updater(조정)\n\nredefine_boundaries\nupdate_priorities\nadjust_expectations\nshift_perspective" as PolicyUpdater
+}
+
+' Flow: Source to Producer
+SourceDB -down-> Producer : emit events
+
+' Flow: Producer to Bus
+Producer -down-> EventBus : publish
+
+' Flow: Bus to Consumers
+EventBus -down-> Gateway : subscribe\n(fan-out)
+
+' Flow: Consumer Pipeline
+Gateway -down-> Filter
+Filter -down-> Firewall
+Firewall -down-> Retry
+Retry -down-> DLQ : exhausted
+
+' Flow: Consumers to Event Store
+Gateway -down-> EventStore : persist
+
+' Flow: CQRS Pattern
+EventStore -down-> Projector : read
+Projector -right-> ReadModel : update
+
+' Flow: Batch Processing
+Scheduler -down-> BatchProc
+BatchProc -down-> Monitor
+Monitor -down-> Output
+BatchProc .left.> EventStore : read/write
+
+' Flow: Observability Feedback
+Metrics -down-> PolicyUpdater
+Logs -down-> PolicyUpdater
+Traces -down-> PolicyUpdater
+Alerts -down-> PolicyUpdater
+PolicyUpdater .up.> Gateway : feedback
+@enduml
