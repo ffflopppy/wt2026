@@ -8,4 +8,5 @@
 “경험은 쌓이고, 사건은 흐르고, 올해도 응원한다.”
 
 ### Architecture
-<img width="1601" height="1636" alt="eda" src="https://github.com/user-attachments/assets/29ecf59b-9c97-4e9f-bea0-a375f0ac5dc5" />
+
+<img width="1619" height="1685" alt="eda_2026" src="https://github.com/user-attachments/assets/6e22de27-fb69-4fb7-82c4-a86a4784fbaf" />
